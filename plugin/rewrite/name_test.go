@@ -16,9 +16,9 @@ func TestRewriteIllegalName(t *testing.T) {
 	r, _ := newNameRule("stop", "example.org.", "example..org.")
 
 	rw := Rewrite{
-		Next:     plugin.HandlerFunc(msgPrinter),
-		Rules:    []Rule{r},
-		noRevert: true,
+		Next:         plugin.HandlerFunc(msgPrinter),
+		Rules:        []Rule{r},
+		RevertPolicy: NoRevertPolicy(),
 	}
 
 	ctx := context.TODO()
@@ -55,9 +55,9 @@ func TestRewriteNamePrefixSuffix(t *testing.T) {
 		}
 
 		rw := Rewrite{
-			Next:     plugin.HandlerFunc(msgPrinter),
-			Rules:    []Rule{r},
-			noRevert: true,
+			Next:         plugin.HandlerFunc(msgPrinter),
+			Rules:        []Rule{r},
+			RevertPolicy: NoRevertPolicy(),
 		}
 
 		m := new(dns.Msg)
@@ -186,9 +186,9 @@ func TestRewriteNamePrefixSuffixAutoAnswer(t *testing.T) {
 		}
 
 		rw := Rewrite{
-			Next:      plugin.HandlerFunc(msgPrinter),
-			Rules:     []Rule{r},
-			noRestore: true,
+			Next:         plugin.HandlerFunc(msgPrinter),
+			Rules:        []Rule{r},
+			RevertPolicy: NoRestorePolicy(),
 		}
 
 		m := new(dns.Msg)
@@ -235,9 +235,9 @@ func TestRewriteNameExactAnswer(t *testing.T) {
 		}
 
 		rw := Rewrite{
-			Next:      plugin.HandlerFunc(msgPrinter),
-			Rules:     []Rule{r},
-			noRestore: true,
+			Next:         plugin.HandlerFunc(msgPrinter),
+			Rules:        []Rule{r},
+			RevertPolicy: NoRestorePolicy(),
 		}
 
 		m := new(dns.Msg)
@@ -282,9 +282,9 @@ func TestRewriteNameRegexAnswer(t *testing.T) {
 		}
 
 		rw := Rewrite{
-			Next:      plugin.HandlerFunc(msgPrinter),
-			Rules:     []Rule{r},
-			noRestore: true,
+			Next:         plugin.HandlerFunc(msgPrinter),
+			Rules:        []Rule{r},
+			RevertPolicy: NoRestorePolicy(),
 		}
 
 		m := new(dns.Msg)

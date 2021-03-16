@@ -4,6 +4,41 @@ import (
 	"github.com/miekg/dns"
 )
 
+// RevertPolicy controls the overall reverting process
+type RevertPolicy interface {
+	DoRevert() bool
+	DoQuestionRestore() bool
+}
+
+type revertPolicy struct {
+	noRevert  bool
+	noRestore bool
+}
+
+func (p revertPolicy) DoRevert() bool {
+	return !p.noRevert
+}
+
+func (p revertPolicy) DoQuestionRestore() bool {
+	return !p.noRestore
+}
+
+// NoRevertPolicy disables all response rewrite rules
+func NoRevertPolicy() RevertPolicy {
+	return revertPolicy{true, false}
+}
+
+// NoRestorePolicy disables the question restoration during the response rewrite
+func NoRestorePolicy() RevertPolicy {
+	return revertPolicy{false, true}
+}
+
+// NewRevertPolicy creates a new reverter policy by dynamically specifying all
+// options.
+func NewRevertPolicy(noRevert, noRestore bool) RevertPolicy {
+	return revertPolicy{noRestore: noRestore, noRevert: noRevert}
+}
+
 // ResponseRule contains a rule to rewrite a response with.
 type ResponseRule interface {
 	RewriteResponse(rr dns.RR)
@@ -19,16 +54,16 @@ type ResponseRules = []ResponseRule
 type ResponseReverter struct {
 	dns.ResponseWriter
 	originalQuestion dns.Question
-	ResponseRules    []ResponseRule
-	noRestore        bool
+	ResponseRules    ResponseRules
+	revertPolicy     RevertPolicy
 }
 
 // NewResponseReverter returns a pointer to a new ResponseReverter.
-func NewResponseReverter(w dns.ResponseWriter, r *dns.Msg, noRestoreQuestion bool) *ResponseReverter {
+func NewResponseReverter(w dns.ResponseWriter, r *dns.Msg, policy RevertPolicy) *ResponseReverter {
 	return &ResponseReverter{
 		ResponseWriter:   w,
 		originalQuestion: r.Question[0],
-		noRestore:        noRestoreQuestion,
+		revertPolicy:     policy,
 	}
 }
 
@@ -37,7 +72,7 @@ func (r *ResponseReverter) WriteMsg(res1 *dns.Msg) error {
 	// Deep copy 'res' as to not (e.g). rewrite a message that's also stored in the cache.
 	res := res1.Copy()
 
-	if !r.noRestore {
+	if r.revertPolicy.DoQuestionRestore() {
 		res.Question[0] = r.originalQuestion
 	}
 	if len(r.ResponseRules) > 0 {

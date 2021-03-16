@@ -53,9 +53,9 @@ func doReverterTests(rules []Rule, t *testing.T) {
 		m.Question[0].Qclass = dns.ClassINET
 		m.Answer = tc.answer
 		rw := Rewrite{
-			Next:     plugin.HandlerFunc(msgPrinter),
-			Rules:    rules,
-			noRevert: tc.noRevert,
+			Next:         plugin.HandlerFunc(msgPrinter),
+			Rules:        rules,
+			RevertPolicy: NewRevertPolicy(tc.noRevert, false),
 		}
 		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		rw.ServeDNS(ctx, rec, m)
@@ -139,9 +139,9 @@ func doValueReverterTests(name string, rules []Rule, t *testing.T) {
 		m.Answer = tc.answer
 		m.Extra = tc.extra
 		rw := Rewrite{
-			Next:     plugin.HandlerFunc(msgPrinter),
-			Rules:    rules,
-			noRevert: tc.noRevert,
+			Next:         plugin.HandlerFunc(msgPrinter),
+			Rules:        rules,
+			RevertPolicy: NewRevertPolicy(tc.noRevert, false),
 		}
 		rec := dnstest.NewRecorder(&test.ResponseWriter{})
 		rw.ServeDNS(ctx, rec, m)
